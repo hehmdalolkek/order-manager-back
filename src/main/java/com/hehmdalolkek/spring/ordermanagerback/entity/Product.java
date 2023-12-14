@@ -19,6 +19,9 @@ public class Product {
     @Size(min = 2, max = 32)
     private String title;
 
+    @Column(name = "photo")
+    private String photo;
+
     @Column(name = "description")
     @NotBlank
     @Size(min = 2, max = 1000)
