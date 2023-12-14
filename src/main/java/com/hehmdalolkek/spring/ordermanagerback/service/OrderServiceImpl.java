@@ -2,9 +2,11 @@ package com.hehmdalolkek.spring.ordermanagerback.service;
 
 import com.hehmdalolkek.spring.ordermanagerback.dao.OrderDetailRepository;
 import com.hehmdalolkek.spring.ordermanagerback.dao.OrderRepository;
+import com.hehmdalolkek.spring.ordermanagerback.dao.UserRepository;
 import com.hehmdalolkek.spring.ordermanagerback.entity.Order;
 import com.hehmdalolkek.spring.ordermanagerback.entity.OrderDetail;
 import com.hehmdalolkek.spring.ordermanagerback.entity.OrderWrapper;
+import com.hehmdalolkek.spring.ordermanagerback.entity.User;
 import com.hehmdalolkek.spring.ordermanagerback.exceptions.OrderDetailsNotFoundException;
 import com.hehmdalolkek.spring.ordermanagerback.exceptions.OrderNotFoundException;
 import jakarta.transaction.Transactional;
@@ -14,13 +16,13 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class OrderServiceImpl implements OrderService {
 
     private OrderRepository orderRepository;
     private OrderDetailRepository orderDetailRepository;
+    private UserRepository userRepository;
 
     @Autowired
     public void setOrderRepository(OrderRepository orderRepository) {
@@ -29,6 +31,10 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     public void setOrderDetailRepository(OrderDetailRepository orderDetailRepository) {
         this.orderDetailRepository = orderDetailRepository;
+    }
+    @Autowired
+    public void setUserRepository(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -55,14 +61,22 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderWrapper addOrder(Order order, List<OrderDetail> orderDetails) {
+        if (order.getUser().getId() == 0) {
+            User user = userRepository.save(order.getUser());
+            order.setUser(user);
+        }
+
         LocalDateTime localDateTime = LocalDateTime.now();
         order.setCreateDate(String.valueOf(localDateTime));
+
         Order savedOrder = orderRepository.save(order);
+
 
         for (OrderDetail orderDetail : orderDetails) {
             orderDetail.setOrder(savedOrder);
             orderDetailRepository.save(orderDetail);
         }
+
         return new OrderWrapper(savedOrder, orderDetails);
     }
 
@@ -72,7 +86,13 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException(id));
 
-        order.setUser(newOrder.getUser());
+        if (newOrder.getUser().getId() == 0) {
+            User user = userRepository.save(newOrder.getUser());
+            order.setUser(user);
+        } else {
+            order.setUser(newOrder.getUser());
+        }
+
         order.setTotal(newOrder.getTotal());
         LocalDateTime localDateTime = LocalDateTime.now();
         order.setCreateDate(String.valueOf(localDateTime));
