@@ -86,16 +86,11 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException(id));
 
-        if (newOrder.getUser().getId() == 0) {
-            User user = userRepository.save(newOrder.getUser());
-            order.setUser(user);
-        } else {
-            order.setUser(newOrder.getUser());
-        }
+        User user = userRepository.save(newOrder.getUser());
+        order.setUser(user);
 
         order.setTotal(newOrder.getTotal());
-        LocalDateTime localDateTime = LocalDateTime.now();
-        order.setCreateDate(String.valueOf(localDateTime));
+        order.setCreateDate(newOrder.getCreateDate());
         Order savedOrder = orderRepository.save(order);
 
         orderDetailRepository.deleteOrderDetailsByOrderId(id);
