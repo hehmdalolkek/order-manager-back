@@ -50,6 +50,14 @@ public class Product {
         this.title = title;
     }
 
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
+    }
+
     public String getDescription() {
         return description;
     }
